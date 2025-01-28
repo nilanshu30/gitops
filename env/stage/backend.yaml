@@ -1,6 +1,6 @@
 services:
   app:
-    image: 120569644879.dkr.ecr.ap-south-1.amazonaws.com/nilanshu-test/backend:latest
+    image: 120569644879.dkr.ecr.ap-south-1.amazonaws.com/nilanshu-test/backend:v0.1
     # networks:
     #   - public
     ports:
@@ -28,7 +28,6 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
-
 # networks:
 #   private:
 #     external: true
