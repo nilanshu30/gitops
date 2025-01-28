@@ -1,0 +1,36 @@
+services:
+  app:
+    image: 120569644879.dkr.ecr.ap-south-1.amazonaws.com/nilanshu-test/backend:latest
+    # networks:
+    #   - public
+    ports:
+      - "8000:8000"
+    # healthcheck:
+    #   test: ["CMD", "service", "nginx", "status"]
+    #   timeout: 10s
+    deploy:
+      # labels:
+      #   - "traefik.enable=true"
+      #   - "traefik.http.routers.app.rule=Host(`app.localhost`)"
+      #   - "traefik.http.routers.app.service=app"
+      #   - "traefik.http.services.app.loadbalancer.server.port=80"
+      mode: replicated
+      replicas: 1
+      update_config:
+        order: start-first
+        failure_action: rollback
+        delay: 10s
+      rollback_config:
+        parallelism: 0
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+# networks:
+#   private:
+#     external: true
+#   public:
+#     external: true
