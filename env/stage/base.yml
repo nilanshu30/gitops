@@ -15,7 +15,7 @@ services:
     image: portainer/portainer-ce:2.21.5
     command: -H tcp://tasks.agent:9001 --tlsskipverify
     ports:
-      - "9000:9000"
+      - "9000:9443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
@@ -52,8 +52,8 @@ services:
     deploy:
       labels:
         - "traefik.enable=true"
-        - "traefik.http.middlewares.test-compress.compress=true"
-        - "traefik.http.routers.dashboard.rule=Host(`console.localhost`)"
+        # - "traefik.http.middlewares.test-compress.compress=true"
+        - "traefik.http.routers.dashboard.rule=Host(`console.nilanshu.xyz`)"
         - "traefik.http.routers.dashboard.service=api@internal"
         - "traefik.http.services.dashboard.loadbalancer.server.port=8080"
         - "traefik.http.routers.ping.rule=Path(`/ping`)"
@@ -89,7 +89,7 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.http.services.whoami.loadbalancer.server.port=80"
-        - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
+        - "traefik.http.routers.whoami.rule=Host(`whoami.nilanshu.xyz`)"
       update_config:
         order: start-first
         failure_action: rollback
