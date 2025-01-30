@@ -7,15 +7,33 @@ services:
     networks:
       - agent_network
     deploy:
+      labels:
+        - "traefik.enable=false"
       mode: global
       placement:
         constraints: [node.platform.os == linux]
+      update_config:
+        order: start-first
+        failure_action: rollback
+        delay: 10s
+      rollback_config:
+        parallelism: 0
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    # healthcheck:
+    #   test: ["CMD", "curl", "--silent", "--fail", "http://localhost:9001"]
+    #   interval: 30s
+    #   retries: 3
+    #   start_period: 5s
+    #   timeout: 10s
 
   portainer:
     image: portainer/portainer-ce:2.21.5
     command: -H tcp://tasks.agent:9001 --tlsskipverify
-    ports:
-      - "9000:9443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
@@ -24,13 +42,34 @@ services:
     deploy:
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.portainer.rule=Host(`portainer.me.dev`)"
+        - "traefik.http.routers.portainer.rule=Host(`portainer.nilanshu.xyz`)"
         - "traefik.http.routers.portainer.service=portainer"
         - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+        - "traefik.http.services.portainer.loadbalancer.healthcheck.path=/"
+        - "traefik.http.services.portainer.loadbalancer.healthcheck.interval=10s"
+        - "traefik.http.services.portainer.loadbalancer.healthcheck.timeout=5s"
       mode: replicated
       replicas: 1
       placement:
         constraints: [node.role == manager]
+      update_config:
+        order: start-first
+        failure_action: rollback
+        delay: 10s
+      rollback_config:
+        parallelism: 0
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    # healthcheck:
+    #   test: ["CMD", "curl", "--silent", "--fail", "http://localhost:9000"]
+    #   interval: 30s
+    #   retries: 3
+    #   start_period: 5s
+    #   timeout: 10s
   
   traefik:
     image: traefik:v3.3
@@ -76,6 +115,12 @@ services:
       placement:
         constraints:
           - node.role == manager
+    # healthcheck:
+    #   test: ["CMD", "curl", "--silent", "--fail", "http://localhost:8080/ping"]
+    #   interval: 30s
+    #   retries: 3
+    #   start_period: 5s
+    #   timeout: 10s
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
@@ -90,6 +135,9 @@ services:
         - "traefik.enable=true"
         - "traefik.http.services.whoami.loadbalancer.server.port=80"
         - "traefik.http.routers.whoami.rule=Host(`whoami.nilanshu.xyz`)"
+        - "traefik.http.services.whoami.loadbalancer.healthcheck.path=/health"
+        - "traefik.http.services.whoami.loadbalancer.healthcheck.interval=10s"
+        - "traefik.http.services.whoami.loadbalancer.healthcheck.timeout=5s"
       update_config:
         order: start-first
         failure_action: rollback
@@ -102,12 +150,20 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
+    # healthcheck:
+    #   test: ["CMD", "curl", "--silent", "--fail", "http://localhost:80"]
+    #   interval: 30s
+    #   retries: 3
+    #   start_period: 5s
+    #   timeout: 10s
 
 networks:
   agent_network:
+    name: agent_network
     driver: overlay
     attachable: true
   public:
+    name: public
     driver: overlay
     attachable: true
 
