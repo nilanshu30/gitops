@@ -4,9 +4,9 @@ services:
     image: postgres:15.1
     restart: always
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: brobazaar
+      POSTGRES_USER=root
+      POSTGRES_PASSWORD=root
+      POSTGRES_DB=brobazaar
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -53,8 +53,8 @@ services:
     depends_on:
       - redis
     environment:
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      CELERY_BROKER_URL=redis://redis:6379/0
+      CELERY_RESULT_BACKEND=redis://redis:6379/0
     command: celery -A myproject worker --loglevel=info
     networks:
       - public
@@ -69,8 +69,8 @@ services:
       - redis
       - celery
     environment:
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      CELERY_BROKER_URL=redis://redis:6379/0
+      CELERY_RESULT_BACKEND=redis://redis:6379/0
     command: celery -A myproject beat --loglevel=info
     networks:
       - public
@@ -83,13 +83,13 @@ services:
     depends_on:
       - postgres
     environment:
-      - DEFAULT_DOMAIN: http://short.nilanshu.xyz
-      - DB_DRIVER: postgres
-      - DB_HOST: postgres
-      - DB_PORT: 5432
-      - DB_USER: root
-      - DB_PASSWORD: root
-      - DB_NAME: mydatabase
+      - DEFAULT_DOMAIN=http://short.nilanshu.xyz
+      - DB_DRIVER=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=mydatabase
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.shlink.loadbalancer.server.port=8080"
