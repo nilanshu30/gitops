@@ -14,7 +14,6 @@ services:
 
   # Elasticsearch
   elasticsearch:
-      container_name: elasticsearch
       image: elasticsearch:7.14.2
       environment:
         - discovery.type=single-node
@@ -37,7 +36,6 @@ services:
   # Redis for Celery
   redis:
     image: redis:latest
-    container_name: redis
     restart: always
     networks:
       - public
@@ -48,7 +46,6 @@ services:
   celery:
     build:
       context: .
-    container_name: celery
     restart: always
     depends_on:
       - redis
@@ -63,7 +60,6 @@ services:
   celery_beat:
     build:
       context: .
-    container_name: celery_beat
     restart: always
     depends_on:
       - redis
@@ -78,7 +74,6 @@ services:
   # Shlink (URL Shortener)
   shlink:
     image: shlinkio/shlink:4.2-roadrunner
-    container_name: shlink
     restart: always
     depends_on:
       - postgres
@@ -100,6 +95,8 @@ services:
   shlink_web:
     image: shlinkio/shlink-web-client:stable
     restart: always
+    environment:
+      - SHLINK_SERVER_URL=http://short.nilanshu.xyz
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.shlink_web.rule=Host(`short.nilanshu.xyz`)"
