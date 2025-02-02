@@ -1,19 +1,20 @@
 services:
   app:
-    image: 120569644879.dkr.ecr.ap-south-1.amazonaws.com/nilanshu-test/backend:v0.1
-    # networks:
-    #   - public
-    ports:
-      - "8000:8000"
-    # healthcheck:
-    #   test: ["CMD", "service", "nginx", "status"]
-    #   timeout: 10s
+    image: 120569644879.dkr.ecr.ap-south-1.amazonaws.com/nilanshu-test/backend:v0.2
+    networks:
+      - public
+    healthcheck:
+      test: ["CMD", "curl", "--silent", "--fail", "http://localhost:8000/playground/health"]
+      interval: 30s
+      retries: 3
+      start_period: 5s
+      timeout: 10s
     deploy:
-      # labels:
-      #   - "traefik.enable=true"
-      #   - "traefik.http.routers.app.rule=Host(`app.localhost`)"
-      #   - "traefik.http.routers.app.service=app"
-      #   - "traefik.http.services.app.loadbalancer.server.port=80"
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.app.rule=Host(`app.nilanshu.xyz`)"
+        - "traefik.http.routers.app.service=app"
+        - "traefik.http.services.app.loadbalancer.server.port=8000"
       mode: replicated
       replicas: 1
       update_config:
