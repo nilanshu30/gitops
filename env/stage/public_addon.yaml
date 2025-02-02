@@ -4,9 +4,9 @@ services:
     image: postgres:15.1
     restart: always
     environment:
-      POSTGRES_USER=root
-      POSTGRES_PASSWORD=root
-      POSTGRES_DB=brobazaar
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=brobazaar
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -14,7 +14,6 @@ services:
 
   # Elasticsearch
   elasticsearch:
-      container_name: elasticsearch
       image: elasticsearch:7.14.2
       environment:
         - discovery.type=single-node
@@ -37,7 +36,6 @@ services:
   # Redis for Celery
   redis:
     image: redis:latest
-    container_name: redis
     restart: always
     networks:
       - public
@@ -48,13 +46,12 @@ services:
   celery:
     build:
       context: .
-    container_name: celery
     restart: always
     depends_on:
       - redis
     environment:
-      CELERY_BROKER_URL=redis://redis:6379/0
-      CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     command: celery -A myproject worker --loglevel=info
     networks:
       - public
@@ -63,14 +60,13 @@ services:
   celery_beat:
     build:
       context: .
-    container_name: celery_beat
     restart: always
     depends_on:
       - redis
       - celery
     environment:
-      CELERY_BROKER_URL=redis://redis:6379/0
-      CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     command: celery -A myproject beat --loglevel=info
     networks:
       - public
