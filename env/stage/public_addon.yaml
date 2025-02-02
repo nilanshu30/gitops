@@ -1,19 +1,17 @@
 services:
   # PostgreSQL Database
   postgres:
-    image: postgres:15.1
+    image: postgres:15.10
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=brobazaar
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     networks:
       - public
 
   # Elasticsearch
   elasticsearch:
-      image: elasticsearch:7.14.2
+      image: elasticsearch:8.17.1
       environment:
         - discovery.type=single-node
         - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
@@ -24,8 +22,6 @@ services:
           hard: -1
       networks:
         - public
-      volumes:
-        - esdata:/usr/share/elasticsearch/data/
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.elasticsearch.rule=Host(`es.nilanshu.xyz`)"
@@ -34,38 +30,13 @@ services:
 
   # Redis for Celery
   redis:
-    image: redis:latest
-    networks:
-      - public
-    volumes:
-      - redis_data:/data
-
-  # Celery Worker
-  celery:
-    depends_on:
-      - redis
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    command: celery -A myproject worker --loglevel=info
-    networks:
-      - public
-
-  # Celery Beat (Optional, for scheduled tasks)
-  celery_beat:
-    depends_on:
-      - redis
-      - celery
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    command: celery -A myproject beat --loglevel=info
+    image: redis:7.4.2
     networks:
       - public
 
   # Shlink (URL Shortener)
   shlink:
-    image: shlinkio/shlink:4.2-roadrunner
+    image: shlinkio/shlink:4.4-roadrunner
     depends_on:
       - postgres
     environment:
@@ -96,8 +67,6 @@ services:
   # Nginx Reverse Proxy
   nginx:
     image: nginx:latest
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.shlink_web.rule=Host(`crm.nilanshu.xyz`)"
@@ -105,11 +74,6 @@ services:
       - "traefik.http.routers.shlink_web.entrypoints=web"
     networks:
       - public
-
-volumes:
-  postgres_data:
-  esdata:
-  redis_data:
 
 networks:
   public:

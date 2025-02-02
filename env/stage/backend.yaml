@@ -29,8 +29,32 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
-# networks:
-#   private:
-#     external: true
-#   public:
-#     external: true
+
+  # Celery Worker
+  celery:
+    image: 120569644879.dkr.ecr.ap-south-1.amazonaws.com/nilanshu-test/backend:v0.2
+    depends_on:
+      - app
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    command: celery -A myproject worker --loglevel=info
+    networks:
+      - public
+
+  # Celery Beat (Optional, for scheduled tasks)
+  celery_beat:
+    image: 120569644879.dkr.ecr.ap-south-1.amazonaws.com/nilanshu-test/backend:v0.2
+    depends_on:
+      - app
+      - celery
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    command: celery -A myproject beat --loglevel=info
+    networks:
+      - public
+
+networks:
+  public:
+    external: true
