@@ -1,13 +1,14 @@
 services:
   app:
-    image: 120569644879.dkr.ecr.ap-south-1.amazonaws.com/nilanshu-test/backend:v0.1
+    image: 120569644879.dkr.ecr.ap-south-1.amazonaws.com/nilanshu-test/backend:v0.2
     networks:
       - public
-    ports:
-      - "8000:8000"
-    # healthcheck:
-    #   test: ["CMD", "service", "nginx", "status"]
-    #   timeout: 10s
+    healthcheck:
+      test: ["CMD", "curl", "--silent", "--fail", "http://localhost:8000/playground/health"]
+      interval: 30s
+      retries: 3
+      start_period: 5s
+      timeout: 10s
     deploy:
       labels:
         - "traefik.enable=true"
