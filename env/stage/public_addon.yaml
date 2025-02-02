@@ -2,7 +2,6 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:15.1
-    restart: always
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
@@ -36,7 +35,6 @@ services:
   # Redis for Celery
   redis:
     image: redis:latest
-    restart: always
     networks:
       - public
     volumes:
@@ -44,9 +42,6 @@ services:
 
   # Celery Worker
   celery:
-    build:
-      context: .
-    restart: always
     depends_on:
       - redis
     environment:
@@ -58,9 +53,6 @@ services:
 
   # Celery Beat (Optional, for scheduled tasks)
   celery_beat:
-    build:
-      context: .
-    restart: always
     depends_on:
       - redis
       - celery
@@ -74,7 +66,6 @@ services:
   # Shlink (URL Shortener)
   shlink:
     image: shlinkio/shlink:4.2-roadrunner
-    restart: always
     depends_on:
       - postgres
     environment:
@@ -94,7 +85,6 @@ services:
   # Shlink Web Client
   shlink_web:
     image: shlinkio/shlink-web-client:stable
-    restart: always
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.shlink_web.rule=Host(`short.nilanshu.xyz`)"
@@ -106,7 +96,6 @@ services:
   # Nginx Reverse Proxy
   nginx:
     image: nginx:latest
-    restart: always
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     labels:
@@ -121,3 +110,7 @@ volumes:
   postgres_data:
   esdata:
   redis_data:
+
+networks:
+  public:
+    external: true
