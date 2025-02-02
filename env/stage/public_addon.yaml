@@ -21,12 +21,12 @@ services:
         - bootstrap.memory_lock=true
       ulimits:
         memlock:
-                soft: -1
-                hard: -1
+          soft: -1
+          hard: -1
       networks:
         - public
       volumes:
-        - es_volume:/usr/share/elasticsearch/data/
+        - esdata:/usr/share/elasticsearch/data/
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.elasticsearch.rule=Host(`es.nilanshu.xyz`)"
@@ -74,7 +74,6 @@ services:
   # Shlink (URL Shortener)
   shlink:
     image: shlinkio/shlink:4.2-roadrunner
-    container_name: shlink
     restart: always
     depends_on:
       - postgres
