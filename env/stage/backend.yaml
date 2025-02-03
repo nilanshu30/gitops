@@ -6,27 +6,27 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
       - POSTGRES_DB=shlink
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-d", "shlink"]
-      interval: 30s
-      retries: 3
-      start_period: 5s
-      timeout: 10s
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready", "-d", "shlink"]
+    #   interval: 30s
+    #   retries: 3
+    #   start_period: 5s
+    #   timeout: 10s
     deploy:
       mode: replicated
       replicas: 1
-      update_config:
-        order: start-first
-        failure_action: rollback
-        delay: 10s
-      rollback_config:
-        parallelism: 0
-        order: stop-first
-      restart_policy:
-        condition: any
-        delay: 5s
-        max_attempts: 3
-        window: 120s
+      # update_config:
+      #   order: start-first
+      #   failure_action: rollback
+      #   delay: 10s
+      # rollback_config:
+      #   parallelism: 0
+      #   order: stop-first
+      # restart_policy:
+      #   condition: any
+      #   delay: 5s
+      #   max_attempts: 3
+      #   window: 120s
     networks:
       - public
 
