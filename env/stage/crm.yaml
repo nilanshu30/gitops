@@ -1,0 +1,36 @@
+services:
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:1.27
+    networks:
+      - public
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      retries: 3
+      start_period: 5s
+      timeout: 10s
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.shlink_web.rule=Host(`crm.nilanshu.xyz`)"
+        - "traefik.http.services.shlink_web.loadbalancer.server.port=80"
+        - "traefik.http.routers.shlink_web.entrypoints=web"
+      update_config:
+        order: start-first
+        failure_action: rollback
+        delay: 10s
+      rollback_config:
+        parallelism: 0
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+networks:
+  public:
+    external: true

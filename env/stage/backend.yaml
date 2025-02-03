@@ -1,20 +1,18 @@
 services:
-  app:
-    image: 120569644879.dkr.ecr.ap-south-1.amazonaws.com/nilanshu-test/backend:v0.2
-    networks:
-      - public
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15.10
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=shlink
     healthcheck:
-      test: ["CMD", "curl", "--silent", "--fail", "http://localhost:8000/playground/health"]
+      test: ["CMD-SHELL", "pg_isready", "-d", "shlink"]
       interval: 30s
       retries: 3
       start_period: 5s
       timeout: 10s
     deploy:
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.app.rule=Host(`app.nilanshu.xyz`)"
-        - "traefik.http.routers.app.service=app"
-        - "traefik.http.services.app.loadbalancer.server.port=8000"
       mode: replicated
       replicas: 1
       update_config:
@@ -29,31 +27,140 @@ services:
         delay: 5s
         max_attempts: 3
         window: 120s
-
-  # Celery Worker
-  celery:
-    image: 120569644879.dkr.ecr.ap-south-1.amazonaws.com/nilanshu-test/backend:v0.2
-    depends_on:
-      - app
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    command: celery -A myproject worker --loglevel=info
     networks:
       - public
 
-  # Celery Beat (Optional, for scheduled tasks)
-  celery_beat:
-    image: 120569644879.dkr.ecr.ap-south-1.amazonaws.com/nilanshu-test/backend:v0.2
-    depends_on:
-      - app
-      - celery
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    command: celery -A myproject beat --loglevel=info
+  # Elasticsearch
+  elasticsearch:
+      image: elasticsearch:8.16.3
+      environment:
+        - discovery.type=single-node
+        - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+        - bootstrap.memory_lock=true
+      networks:
+        - public
+      # healthcheck:
+      # test: ["CMD-SHELL", "pg_isready", "-d", "shlink"]
+      # interval: 30s
+      # retries: 3
+      # start_period: 5s
+      # timeout: 10s
+      deploy:
+        mode: replicated
+        replicas: 1
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.elasticsearch.rule=Host(`es.nilanshu.xyz`)"
+            - "traefik.http.services.elasticsearch.loadbalancer.server.port=9200"
+            - "traefik.http.routers.elasticsearch.entrypoints=web"
+        # update_config:
+        #   order: start-first
+        #   failure_action: rollback
+        #   delay: 10s
+        # rollback_config:
+        #   parallelism: 0
+        #   order: stop-first
+        # restart_policy:
+        #   condition: any
+        #   delay: 5s
+        #   max_attempts: 3
+        #   window: 120s
+
+  # Redis
+  redis:
+    image: redis:7.4.2
     networks:
       - public
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready", "-d", "shlink"]
+    #   interval: 30s
+    #   retries: 3
+    #   start_period: 5s
+    #   timeout: 10s
+    deploy:
+      mode: replicated
+      replicas: 1
+      # update_config:
+      #   order: start-first
+      #   failure_action: rollback
+      #   delay: 10s
+      # rollback_config:
+      #   parallelism: 0
+      #   order: stop-first
+      # restart_policy:
+      #   condition: any
+      #   delay: 5s
+      #   max_attempts: 3
+      #   window: 120s
+
+  # Shlink (URL Shortener)
+  shlink:
+    image: shlinkio/shlink:4.4-roadrunner
+    depends_on:
+      - postgres
+    environment:
+      - DEFAULT_DOMAIN=http://short.nilanshu.xyz
+      - DB_DRIVER=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=shlink
+    networks:
+      - public
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready", "-d", "shlink"]
+    #   interval: 30s
+    #   retries: 3
+    #   start_period: 5s
+    #   timeout: 10s
+    deploy:
+      mode: replicated
+      replicas: 1
+      # update_config:
+      #   order: start-first
+      #   failure_action: rollback
+      #   delay: 10s
+      # rollback_config:
+      #   parallelism: 0
+      #   order: stop-first
+      # restart_policy:
+      #   condition: any
+      #   delay: 5s
+      #   max_attempts: 3
+      #   window: 120s
+
+  # Shlink Web Client
+  shlink_web:
+    image: shlinkio/shlink-web-client:4.3
+    networks:
+      - public
+    # healthcheck:
+    #   test: ["CMD-SHELL", "pg_isready", "-d", "shlink"]
+    #   interval: 30s
+    #   retries: 3
+    #   start_period: 5s
+    #   timeout: 10s
+    deploy:
+      mode: replicated
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.shlink_web.rule=Host(`short.nilanshu.xyz`)"
+        - "traefik.http.services.shlink_web.loadbalancer.server.port=80"
+        - "traefik.http.routers.shlink_web.entrypoints=web"
+      # update_config:
+      #   order: start-first
+      #   failure_action: rollback
+      #   delay: 10s
+      # rollback_config:
+      #   parallelism: 0
+      #   order: stop-first
+      # restart_policy:
+      #   condition: any
+      #   delay: 5s
+      #   max_attempts: 3
+      #   window: 120s
 
 networks:
   public:
